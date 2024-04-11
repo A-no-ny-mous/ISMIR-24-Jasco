@@ -109,17 +109,16 @@
             <h2>Abstract</h2>
             <center><img src="./figures/arch.png" style="width:45%"></center>
             <br>
-            We present JASCO, a temporally controlled Text-to-Music generation model utilizing both symbolic and audio-based conditions. 
-            JASCO can generate high-quality music samples conditioned on global text description along with fine-grained local controls. 
-            JASCO is based on the Flow Matching modeling paradigm together with a novel conditioning method that allows the generation of music 
-            which is temporally aligned with specific conditions while disentangled from global concepts such as style, genre, instrumentation, etc. 
-            Specifically, we apply information bottleneck layers in conjunction with temporal blurring to extract relevant information 
-            with respect to specific controls. This allows the incorporation of both symbolic and audio-based conditions in the 
-            same text-to-music model. We experiment with various symbolic conditioning signals (e.g., chords, melody), 
-            as well as with audio representations (e.g., separated drum tracks, full-mix). 
-            We evaluate JASCO considering both generation quality and condition adherence, 
-            using both objective metrics and human studies. Results suggest JASCO is superior to the 
-                evaluated baselines across all setups while allowing versatile conditioning options.
+            We present JASCO, a temporally controlled text-to-music generation model utilizing both symbolic and audio-based conditions. 
+            JASCO can generate high-quality music samples conditioned on global text descriptions along with fine-grained local controls. 
+            JASCO is based on the Flow Matching modeling paradigm together with a novel conditioning method. This allows music generation 
+            controlled both locally (e.g., chords) and globally (text description). Specifically, we apply information bottleneck layers in 
+            conjunction with temporal blurring to extract relevant information with respect to specific controls. This allows the incorporation 
+            of both symbolic and audio-based conditions in the same text-to-music model. We experiment with various symbolic conditioning 
+            signals (e.g., chords, melody), as well as with audio representations (e.g., separated drum tracks, full-mix). We evaluate 
+            JASCO considering both generation quality and condition adherence, using both objective metrics and human studies. 
+            Results suggest that JASCO is comparable to the evaluated baselines considering generation quality while allowing 
+            significantly better and more versatile controls over the generated music.
         </span>
     </div>
     
