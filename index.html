@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<!-- saved from url=(0058)https://google-research.github.io/seanet/musiclm/examples/ -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>Joint Audio And Symbolic Conditioning for Temporally Controlled Text-To-Music Generation</title>
+    <link href="./style/bootstrap.min.css" rel="stylesheet">
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="./style/jquery.min.js"></script>
+    <script src="./style/helper-v2.js" defer=""></script>
+    <style>
+      td {
+        vertical-align: middle;
+      }
+      th, td {
+        border-bottom: 0.1px solid rgb(167, 167, 167);
+        padding: 8px;
+        text-align: center;
+        width: 33%; /* Equal width for each cell */
+        
+      }
+
+      audio {
+        width: 20vw;
+        min-width: 100px;
+        max-width: 250px;
+      }
+      .timestamp-label {
+        color: gray;
+      }
+      table.wide-audio audio {
+        width: 40vw;
+        max-width: 40vw;
+      }
+      /* .authors {
+        font-size: 0.8em;
+        color: gray;
+      } */
+      .margin-top {
+        margin-top:3px;
+      }
+      
+      .margin-bottom {
+        margin-bottom:3px;
+      }
+
+      body {
+        margin-right: 80px;
+        margin-left: 80px;
+        margin-top: 30px;
+        margin-bottom: 10px;
+      }
+      .center-no-border {
+        text-align: center;
+        border: none;
+      }
+    </style>
+    
+
+    <script>
+      function updateAudio() {
+
+          var sample = document.getElementById("sample").value;
+
+          const categories = ['chroma', 'drums_no_bpf', 'chords',
+                              'ttm'];
+
+          // Update audio for each cell in the table
+          for (var i = 1; i <= 3; i++) {
+              var text_values = document.getElementById("text" + i).value.split('|');
+              var text_idx = text_values[0];
+              var text = text_values[1];
+              
+              document.getElementById("audio_header_" + i).innerText = text
+              
+              // iterate over the three categories - melody, drums, chords
+              categories.forEach(category => {
+                var fileName = "sandbox/" + sample + "/"
+                var audio = document.getElementById("audio_" + i + "_" + category);
+                fileName += category + "_";
+
+                fileName += text_idx + ".wav";
+
+                audio.src = "audio/" + fileName;
+                audio.load();
+                
+              });
+          }
+         
+      }
+    </script>
+  </head>
+  <body>
+    <div id="header" class="container-fluid">
+        <div class="row" style="text-align: center;">
+        <div class="row">
+            <h1>Joint Audio And Symbolic Conditioning for</h1>
+            <h1>Temporally Controlled Text-To-Music Generation</h1>
+            <div class="authors">
+                Anonymous Authors
+            </div>
+            <br>
+        </div>
+    </div>
+    
+    <!--------------------- ABSTRACT ----------------------->
+
+    <div class="container pt-5 mt-5 shadow p-5 mb-5 bg-white rounded">
+        <span>
+            <h2>Abstract</h2>
+            <center><img src="./figures/arch.png" style="width:45%"></center>
+            <br>
+            We present JASCO, a temporally controlled Text-to-Music generation model utilizing both symbolic and audio-based conditions. 
+            JASCO can generate high-quality music samples conditioned on global text description along with fine-grained local controls. 
+            JASCO is based on the Flow Matching modeling paradigm together with a novel conditioning method that allows the generation of music 
+            which is temporally aligned with specific conditions while disentangled from global concepts such as style, genre, instrumentation, etc. 
+            Specifically, we apply information bottleneck layers in conjunction with temporal blurring to extract relevant information 
+            with respect to specific controls. This allows the incorporation of both symbolic and audio-based conditions in the 
+            same text-to-music model. We experiment with various symbolic conditioning signals (e.g., chords, melody), 
+            as well as with audio representations (e.g., separated drum tracks, full-mix). 
+            We evaluate JASCO considering both generation quality and condition adherence, 
+            using both objective metrics and human studies. Results suggest JASCO is superior to the 
+                evaluated baselines across all setups while allowing versatile conditioning options.
+        </span>
+    </div>
+    
+    <!--------------------- MELODY ----------------------->
+    <div class="container pt-5 mt-5 shadow p-5 mb-5 bg-white rounded">
+        <h2>Melody Conditioning</h2>
+        
+      
+        <table>
+            <tr>
+                <th id="melody_audio_header_arrows">Input Audio </th>
+                <th id="melody_audio_header_gt">Text 1</th>
+                <th id="melody_audio_header_2">Text 2</th>
+            </tr>
+
+            <!--------------------- melody1 ----------------------->
+            <tr>
+              <td class="center-no-border">
+                  Carmen, Act I: Habanera - Bizet
+              </td>
+              <td class="center-no-border"> Soft Jazz track with double bass piano and sax, mellow drums with brushes </td>
+  
+      
+              <td class="center-no-border"> Dance house mix, various electronic effects with hardcore vibe, high bpm drums </td>
+              </td>
+          
+            </tr>
+  
+            <tr>
+                <td>
+                  <audio controls="" controlslist="nodownload" class="px-1"> 
+                      <source src="audio/melody/carmen.wav" type="audio/mpeg">
+                      Your browser does not support the audio element.
+                  </audio>
+                </td>
+  
+                <td>
+                    <audio controls id="melody0_generated_0">
+                        <source src="audio/melody/carmen_jazz.wav" type="audio/mpeg">
+                        Your browser does not support the audio element.
+                    </audio>
+                </td>
+                <td>
+                    <audio controls id="melody0_generated_1">
+                        <source src="audio/melody/carmen_dance.wav" type="audio/mpeg">
+                        Your browser does not support the audio element.
+                    </audio>
+                </td>
+            </tr>
+  
+            <!--------------------- melody2 ----------------------->
+            <tr>
+              <td class="center-no-border">
+                  Flight of the Bumblebee - Rimsky-Korsakov
+              </td>
+              <td class="center-no-border"> Fast tempo country song with dominating banjo and acoustic guitars </td>
+  
+      
+              <td class="center-no-border"> Psychodelic trance music with deep synth bass in goa style </td>
+              </td>
+          
+            </tr>
+  
+            <tr>
+                <td>
+                    <audio controls id="melody_audio_GT_1">
+                        <source src="audio/melody/bumblebee.wav" type="audio/mpeg">
+                        Your browser does not support the audio element.
+                    </audio>
+                </td>
+
+                <td>
+                    <audio controls id="melody1_generated_0">
+                        <source src="audio/melody/bumblebee_country_1.wav" type="audio/mpeg">
+                        Your browser does not support the audio element.
+                    </audio>
+                </td>
+                <td>
+                    <audio controls id="melody1_generated_1">
+                        <source src="audio/melody/bumblebee_goa.wav" type="audio/mpeg">
+                        Your browser does not support the audio element.
+                    </audio>
+                </td>
+            </tr>
+            
+            <!--------------------- melody3 ----------------------->
+            <tr>
+                <td class="center-no-border">
+                    Swan Lake ballet Op.20, Act 2, No. 14 - Tchaikovsky
+                </td>
+                <td class="center-no-border"> Chinese traditional track with guzheng, precussion, and baboo flute </td>
+    
+        
+                <td class="center-no-border"> R&B track with deep bass, electronic drums and lead trumpet </td>
+                </td>
+            
+            </tr>
+
+            <tr>
+                <td>
+                    <audio controls id="melody_audio_GT_3">
+                        <source src="audio/melody/swan.wav" type="audio/mpeg">
+                        Your browser does not support the audio element.
+                    </audio>
+                </td>
+
+                <td>
+                    <audio controls id="melody3_generated_0">
+                        <source src="audio/melody/swan_chinese_3.wav" type="audio/mpeg">
+                        Your browser does not support the audio element.
+                    </audio>
+                </td>
+                <td>
+                    <audio controls id="melody3_generated_1">
+                        <source src="audio/melody/swan_rnb_2.wav" type="audio/mpeg">
+                        Your browser does not support the audio element.
+                    </audio>
+                </td>
+            </tr>
+
+            <!--------------------- melody4 ----------------------->
+            <tr>
+                <td class="center-no-border">
+                    Balero - Ravel
+                </td>
+                <td class="center-no-border"> An 80s driving pop song electronic drums and synth pads in the background </td>
+    
+        
+                <td class="center-no-border"> Heavy rock track with double pedal drums and distortion guitars </td>
+                </td>
+            
+            </tr>
+
+            <tr>
+                <td>
+                    <audio controls id="melody_audio_GT_3">
+                        <source src="audio/melody/ravel.wav" type="audio/mpeg">
+                        Your browser does not support the audio element.
+                    </audio>
+                </td>
+
+                <td>
+                    <audio controls id="melody3_generated_0">
+                        <source src="audio/melody/ravel_80s_pop.wav" type="audio/mpeg">
+                        Your browser does not support the audio element.
+                    </audio>
+                </td>
+                <td>
+                    <audio controls id="melody3_generated_1">
+                        <source src="audio/melody/ravel_heavy_rock.wav" type="audio/mpeg">
+                        Your browser does not support the audio element.
+                    </audio>
+                </td>
+            </tr>
+
+              
+  
+        </table>
+      </div>
+
+      
+    <!--------------------- DRUMS ----------------------->
+    <div class="container pt-5 mt-5 shadow p-5 mb-5 bg-white rounded">
+      <h2>Drums Conditioning</h2>
+      
+      
+      <table>
+         
+        <tr>
+            <th id="drums_audio_header_arrows">text prompt → drum prompt ↓ </th>
+            <th id="drums_audio_header_gt">Input Audio</th>
+            <th id="drums_audio_header_1">90s rock with electric guitar and heavy drums</th>
+            <th id="drums_audio_header_2">Reggae with ukelele and percussions</th>
+            <th id="drums_audio_header_3">An 80s driving pop song with heavy drums and synth pads in the background</th>
+        </tr>
+        <tr>
+            <td> separated drums </td>
+            <td>
+                <audio controls id="drums1_audio_GT">
+                    <source src="audio/drums/sep_drums_2.wav" type="audio/mpeg">
+                    Your browser does not support the audio element.
+                </audio>
+            </td>
+            <td>
+                <audio controls id="drums1_audio_1">
+                    <source src="audio/drums/rock_2.wav" type="audio/mpeg">
+                    Your browser does not support the audio element.
+                </audio>
+            </td>
+            <td>
+                <audio controls id="drums1_audio_2">
+                    <source src="audio/drums/reggae_2.wav" type="audio/mpeg">
+                    Your browser does not support the audio element.
+                </audio>
+            </td>
+            <td>
+                <audio controls id="drums1_audio_3">
+                    <source src="audio/drums/80s_2.wav" type="audio/mpeg">
+                    Your browser does not support the audio element.
+                </audio>
+            </td>
+        </tr>
+        <tr>
+            <td> separated drums </td>
+            <td>
+                <audio controls id="drums1_audio_GT">
+                    <source src="audio/drums/sep_drums_0.wav" type="audio/mpeg">
+                    Your browser does not support the audio element.
+                </audio>
+            </td>
+            <td>
+                <audio controls id="drums1_audio_1">
+                    <source src="audio/drums/rock_0.wav" type="audio/mpeg">
+                    Your browser does not support the audio element.
+                </audio>
+            </td>
+            <td>
+                <audio controls id="drums1_audio_2">
+                    <source src="audio/drums/reggae_0.wav" type="audio/mpeg">
+                    Your browser does not support the audio element.
+                </audio>
+            </td>
+            <td>
+                <audio controls id="drums1_audio_3">
+                    <source src="audio/drums/80s_0.wav" type="audio/mpeg">
+                    Your browser does not support the audio element.
+                </audio>
+            </td>
+        </tr>
+
+        <tr>
+            <td> separated drums </td>
+            <td>
+                <audio controls id="drums2_audio_GT">
+                    <source src="audio/drums/sep_drums_1.wav" type="audio/mpeg">
+                    Your browser does not support the audio element.
+                </audio>
+            </td>
+            <td>
+                <audio controls id="drums2_audio_1">
+                    <source src="audio/drums/rock_1.wav" type="audio/mpeg">
+                    Your browser does not support the audio element.
+                </audio>
+            </td>
+            <td>
+                <audio controls id="drums2_audio_2">
+                    <source src="audio/drums/reggae_1.wav" type="audio/mpeg">
+                    Your browser does not support the audio element.
+                </audio>
+            </td>
+            <td>
+                <audio controls id="drums2_audio_3">
+                    <source src="audio/drums/80s_1.wav" type="audio/mpeg">
+                    Your browser does drums2not support the audio element.
+                </audio>
+            </td>
+        </tr>
+
+        <tr>
+          <td> beatboxing </td>
+          <td>
+              <audio controls id="drums_beatbox1_audio_GT">
+                  <source src="audio/drums/bbox_0.wav" type="audio/mpeg">
+                  Your browser does not support the audio element.
+              </audio>
+          </td>
+          <td>
+              <audio controls id="drums_beatbox1_audio_1">
+                  <source src="audio/drums/bbox_rock_0.wav" type="audio/mpeg">
+                  Your browser does not support the audio element.
+              </audio>
+          </td>
+          <td>
+              <audio controls id="drums_beatbox1_audio_2">
+                  <source src="audio/drums/bbox_reggae_0.wav" type="audio/mpeg">
+                  Your browser does not support the audio element.
+              </audio>
+          </td>
+          <td>
+              <audio controls id="drums_beatbox1_audio_3">
+                  <source src="audio/drums/bbox_80s_0.wav" type="audio/mpeg">
+                  Your browser does not support the audio element.
+              </audio>
+          </td>
+      </tr>
+
+      <tr>
+        <td> beatboxing </td>
+        <td>
+            <audio controls id="drums_beatbox2_audio_GT">
+                <source src="audio/drums/bbox_1.wav" type="audio/mpeg">
+                Your browser does not support the audio element.
+            </audio>
+        </td>
+        <td>
+            <audio controls id="drums_beatbox2_audio_1">
+                <source src="audio/drums/bbox_rock_1.wav" type="audio/mpeg">
+                Your browser does not support the audio element.
+            </audio>
+        </td>
+        <td>
+            <audio controls id="drums_beatbox2_audio_2">
+                <source src="audio/drums/bbox_reggae_1.wav" type="audio/mpeg">
+                Your browser does not support the audio element.
+            </audio>
+        </td>
+        <td>
+            <audio controls id="drums_beatbox2_audio_3">
+                <source src="audio/drums/bbox_80s_1.wav" type="audio/mpeg">
+                Your browser does not support the audio element.
+            </audio>
+        </td>
+      </tr>
+
+      </table>
+    </div>
+    
+    <!--------------------- CHORD PROGRESSION ----------------------->
+    <div class="container pt-5 mt-5 shadow p-5 mb-5 bg-white rounded">
+      <h2>Chords Conditioning</h2>
+        
+      <table>
+         
+          <tr>
+              <th id="chords_audio_header_gt">Chord Progression</th>
+              <th id="chords_audio_header_1">90s rock with electric guitar and heavy drums</th>
+              <th id="chords_audio_header_2">Reggae with ukelele and percussions</th>
+              <th id="chords_audio_header_3">An 80s driving pop song with heavy drums and synth pads in the background</th>
+          </tr>
+          <tr>
+              <td style="font-size: 12px;">
+                (C, 0.0), (F, 1.0), (G, 1.75), (C, 4.0), (F, 5.0), (G, 5.75), (C, 8.0), (F, 9.0), (A7, 9.75)
+              </td>
+              <td>
+                  <audio controls id="chords1_audio_1">
+                      <source src="audio/chords/rock_0.wav" type="audio/mpeg">
+                      Your browser does not support the audio element.
+                  </audio>
+              </td>
+              <td>
+                  <audio controls id="chords1_audio_2">
+                      <source src="audio/chords/reggae_0.wav" type="audio/mpeg">
+                      Your browser does not support the audio element.
+                  </audio>
+              </td>
+              <td>
+                  <audio controls id="chords1_audio_3">
+                      <source src="audio/chords/80s_0.wav" type="audio/mpeg">
+                      Your browser does not support the audio element.
+                  </audio>
+              </td>
+          </tr>
+
+        <tr>
+            <td style="font-size: 12px;">(Em, 0.0), (G, 1.5), (D, 3.0), (A, 4.5), (Em, 6.0), (G, 7.5), (D, 9.0)</td> <!-- Inline CSS to change font size -->
+
+            <!-- <td><>
+                (Em, 0.0), (G, 1.5), (D, 3.0), (A, 4.5), (Em, 6.0), (G, 7.5), (D, 9.0)
+            </td> -->
+            <td>
+                <audio controls id="chords2_audio_1">
+                    <source src="audio/chords/rock_1.wav" type="audio/mpeg">
+                    Your browser does not support the audio element.
+                </audio>
+            </td>
+            <td>
+                <audio controls id="chords2_audio_2">
+                    <source src="audio/chords/reggae_1.wav" type="audio/mpeg">
+                    Your browser does not support the audio element.
+                </audio>
+            </td>
+            <td>
+                <audio controls id="chords2_audio_3">
+                    <source src="audio/chords/80s_1.wav" type="audio/mpeg">
+                    Your browser does not support the audio element.
+                </audio>
+            </td>
+        </tr>
+
+        <tr>
+            <td style="font-size: 12px;">(E7, 0.0), (A7, 1.0), (E7, 2.0), (A7, 4.0), (E7, 6.0), (B7, 8.0), (A7, 8.5), (E7, 9.0)</td> <!-- Inline CSS to change font size -->
+
+            <!-- <td><>
+                (Em, 0.0), (G, 1.5), (D, 3.0), (A, 4.5), (Em, 6.0), (G, 7.5), (D, 9.0)
+            </td> -->
+            <td>
+                <audio controls id="chords3_audio_1">
+                    <source src="audio/chords/rock_2.wav" type="audio/mpeg">
+                    Your browser does not support the audio element.
+                </audio>
+            </td>
+            <td>
+                <audio controls id="chords3_audio_2">
+                    <source src="audio/chords/reggae_2.wav" type="audio/mpeg">
+                    Your browser does not support the audio element.
+                </audio>
+            </td>
+            <td>
+                <audio controls id="chords3_audio_3">
+                    <source src="audio/chords/80s_2.wav" type="audio/mpeg">
+                    Your browser does not support the audio element.
+                </audio>
+            </td>
+        </tr>
+          
+      </table>
+    </div>
+
+    
+    <!------------------ AUDIO CONDITIONING ------------------->
+
+    <div class="container pt-5 mt-5 shadow p-5 mb-5 bg-white rounded">
+      <h2>Audio Conditioning</h2>
+      
+      <table>
+          <tr>
+              <th id="audio_cond_audio_header_gt">Input Audio</th>
+              <th id="audio_cond_audio_header_1">90s rock with electric guitar and heavy drums</th>
+              <th id="audio_cond_audio_header_2">Reggae with ukelele and percussions</th>
+              <th id="audio_cond_audio_header_3">An 80s driving pop song with heavy drums and synth pads in the background</th>
+          </tr>
+          <tr>
+              <td>
+                  <audio controls id="audio_cond_8_gt">
+                      <source src="audio/audio_cond/gt_8.wav" type="audio/mpeg">
+                      Your browser does not support the audio element.
+                  </audio>
+              </td>
+              <td>
+                  <audio controls id="audio_cond_8_0">
+                      <source src="audio/audio_cond/gen_8_90s_rock_with_electric_guitar_and_heavy_drums.wav" type="audio/mpeg">
+                      Your browser does not support the audio element.
+                  </audio>
+              </td>
+              <td>
+                  <audio controls id="audio_cond_8_1">
+                      <source src="audio/audio_cond/gen_8_reggae_with_ukelele_and_percaussions.wav" type="audio/mpeg">
+                      Your browser does not support the audio element.
+                  </audio>
+              </td>
+              <td>
+                  <audio controls id="audio_cond_8_2">
+                      <source src="audio/audio_cond/gen_8_An_80s_driving_pop_song_with_heavy_drums_and_synth_pads_in_the_background.wav" type="audio/mpeg">
+                      Your browser does not support the audio element.
+                  </audio>
+              </td>
+          </tr>
+
+          <tr>
+            <td>
+                <audio controls id="audio_cond_0_gt">
+                    <source src="audio/audio_cond/gt_0.wav" type="audio/mpeg">
+                    Your browser does not support the audio element.
+                </audio>
+            </td>
+            <td>
+                <audio controls id="audio_cond_0_0">
+                    <source src="audio/audio_cond/rock_0.wav" type="audio/mpeg">
+                    Your browser does not support the audio element.
+                </audio>
+            </td>
+            <td>
+                <audio controls id="audio_cond_0_1">
+                    <source src="audio/audio_cond/reggae_0.wav" type="audio/mpeg">
+                    Your browser does not support the audio element.
+                </audio>
+            </td>
+            <td>
+                <audio controls id="audio_cond_0_2">
+                    <source src="audio/audio_cond/80s_0.wav" type="audio/mpeg">
+                    Your browser does not support the audio element.
+                </audio>
+            </td>
+        </tr> 
+
+        <tr>
+            <td>
+                <audio controls id="audio_cond_1_gt">
+                    <source src="audio/audio_cond/gt_1.wav" type="audio/mpeg">
+                    Your browser does not support the audio element.
+                </audio>
+            </td>
+            <td>
+                <audio controls id="audio_cond_1_0">
+                    <source src="audio/audio_cond/rock_1.wav" type="audio/mpeg">
+                    Your browser does not support the audio element.
+                </audio>
+            </td>
+            <td>
+                <audio controls id="audio_cond_1_1">
+                    <source src="audio/audio_cond/reggae_1.wav" type="audio/mpeg">
+                    Your browser does not support the audio element.
+                </audio>
+            </td>
+            <td>
+                <audio controls id="audio_cond_1_2">
+                    <source src="audio/audio_cond/80s_1.wav" type="audio/mpeg">
+                    Your browser does not support the audio element.
+                </audio>
+            </td>
+        </tr> 
+
+      </table>
+    </div>
+
+    <!-------------- MELODY/CHORDS/DRUMS/TTM --------------->
+    
+    <div class="container pt-5 mt-5 shadow p-5 mb-5 bg-white rounded">
+      <h2>Sample Sandbox</h2>
+      <!-- <label for="sample">Header in bold text:</label> -->
+      <!-- <input type="text" id="sample" onchange="updateAudio()"> -->
+
+      Interactively control the audio samples using the dropdown menus below.
+      <br></br>
+      <h4>Source Audio</h4>
+      
+      <table>
+          <tr>
+              <th id="GT_sample1">Input Sample 1</th>
+              <th id="GT_sample2">Input Sample 2</th>
+              <th id="GT_sample3">Input Sample 3</th>
+          </tr>
+          <tr>
+              <td>
+                  <audio controls id="gt_audio_1">
+                      <source src="audio/sandbox/gt_sample_1.wav" type="audio/mpeg">
+                      Your browser does not support the audio element.
+                  </audio>
+              </td>
+              <td>
+                  <audio controls id="gt_audio_2">
+                      <source src="audio/sandbox/gt_sample_2.wav" type="audio/mpeg">
+                      Your browser does not support the audio element.
+                  </audio>
+              </td>
+              <td>
+                  <audio controls id="gt_audio_3">
+                      <source src="audio/sandbox/gt_sample_3.wav" type="audio/mpeg">
+                      Your browser does not support the audio element.
+                  </audio>
+              </td>
+          </tr>
+      </table>
+
+      <br></br>
+      <h4>Generated</h4>
+      
+      <label for="sample">Source Audio:</label>
+      <select id="sample" onchange="updateAudio()">
+          <option value="sample1">Sample 1</option>
+          <option value="sample2">Sample 2</option>
+          <option value="sample3">Sample 3</option>
+      </select>
+      
+      <br></br>
+
+      <label for="text1">Text 1:</label>
+      <select id="text1" onchange="updateAudio()">
+          <option value="0|90s rock with electric guitar and heavy drums">90s Rock</option>
+          <option value="1|A cheerful country with acoustic guitars and banjo">Country</option>
+          <option value="2|Reggae with ukelele and percussions">Raggae</option>
+      </select>
+
+      <label for="text2">Text 2:</label>
+      <select id="text2" onchange="updateAudio()">
+          <option value="3|lofi slow bpm electro chill with organic samples">Lo-fi</option>
+          <option value="4|An 80s driving pop song electronic drums and synth pads in the background">80s</option>
+          <option value="5|Psychedelic track with trance vibes">Trance</option>
+      </select>
+
+      <label for="text3">Text 3:</label>
+      <select id="text3" onchange="updateAudio()">
+          <option value="6|Groovy and bright, with funk elements featuring lively horns, bass, and drums to create a positive and confident mood.">Groovy and bright</option>
+          <option value="7|Bright and grooving, featuring vocal chops, synthesizers, bass, and beats that create a proud, soaring mood. bpm 145">Bright and grooving</option>
+          <option value="8|Soaring and hopeful, featuring atmospheric electric guitar, floating chops, bouncy choir and light synth drums that create a dreamy, inspirational mood. bpm 105">Soaring and hopeful</option>
+      </select>
+      
+      <br> </br>
+      <table>
+        <tr>
+            <th> condition ↓ text → </th>
+            <th id="audio_header_1">90s rock with electric guitar and heavy drums</th>
+            <th id="audio_header_2">lofi slow bpm electro chill with organic samples</th>
+            <th id="audio_header_3">Groovy and bright, with funk elements featuring lively horns, bass, and drums to create a positive and confident mood.</th>
+        </tr>
+        <tr>
+            <td> Melody</td>
+            <td>
+                <audio controls id="audio_1_chroma">
+                    <source src="audio/sandbox/sample1/chroma_0.wav" type="audio/mpeg">
+                    Your browser does not support the audio element.
+                </audio>
+            </td>
+            <td>
+                <audio controls id="audio_2_chroma">
+                    <source src="audio/sandbox/sample1/chroma_3.wav" type="audio/mpeg">
+                    Your browser does not support the audio element.
+                </audio>
+            </td>
+            <td>
+                <audio controls id="audio_3_chroma">
+                    <source src="audio/sandbox/sample1/chroma_6.wav" type="audio/mpeg">
+                    Your browser does not support the audio element.
+                </audio>
+            </td>
+        </tr>
+
+        <tr>
+            <td> Drums</td>
+            <td>
+                <audio controls id="audio_1_drums_no_bpf">
+                    <source src="audio/sandbox/sample1/drums_no_bpf_0.wav" type="audio/mpeg">
+                    Your browser does not support the audio element.
+                </audio>
+            </td>
+            <td>
+                <audio controls id="audio_2_drums_no_bpf">
+                    <source src="audio/sandbox/sample1/drums_no_bpf_3.wav" type="audio/mpeg">
+                    Your browser does not support the audio element.
+                </audio>
+            </td>
+            <td>
+                <audio controls id="audio_3_drums_no_bpf">
+                    <source src="audio/sandbox/sample1/drums_no_bpf_6.wav" type="audio/mpeg">
+                    Your browser does not support the audio element.
+                </audio>
+            </td>
+        </tr>
+
+        <tr>
+            <td> Chords </td>
+            <td>
+                <audio controls id="audio_1_chords">
+                    <source src="audio/sandbox/sample1/chords_0.wav" type="audio/mpeg">
+                    Your browser does not support the audio element.
+                </audio>
+            </td>
+            <td>
+                <audio controls id="audio_2_chords">
+                    <source src="audio/sandbox/sample1/chords_3.wav" type="audio/mpeg">
+                    Your browser does not support the audio element.
+                </audio>
+            </td>
+            <td>
+                <audio controls id="audio_3_chords">
+                    <source src="audio/sandbox/sample1/chords_6.wav" type="audio/mpeg">
+                    Your browser does not support the audio element.
+                </audio>
+            </td>
+        </tr>
+
+        <tr>
+            <td> Text-Only </td>
+            <td>
+                <audio controls id="audio_1_ttm">
+                    <source src="audio/sandbox/sample1/ttm_0.wav" type="audio/mpeg">
+                    Your browser does not support the audio element.
+                </audio>
+            </td>
+            <td>
+                <audio controls id="audio_2_ttm">
+                    <source src="audio/sandbox/sample1/ttm_3.wav" type="audio/mpeg">
+                    Your browser does not support the audio element.
+                </audio>
+            </td>
+            <td>
+                <audio controls id="audio_3_ttm">
+                    <source src="audio/sandbox/sample1/ttm_6.wav" type="audio/mpeg">
+                    Your browser does not support the audio element.
+                </audio>
+            </td>
+        </tr>
+
+        
+    </table>
+   
+    
+  </div>
+
+
+  <!-------------- MULTI CONTROL CONDITIONING --------------->
+  <div class="container pt-5 mt-5 shadow p-5 mb-5 bg-white rounded">
+    <h2>Conditioning on Multiple Controls</h2>
+    <table>
+        <tr>
+            <th> text → condition ↓</th>
+            <th id="multicond_audio_header_1">A modern Bossa Nova using traditional Brazilian instruments. With nylon stringed guitar, piano, bass, flugel horn and percussion. bpm 112</th>
+            <th id="multicond_audio_header_2">Groovy and bright, with funk elements featuring lively horns, bass, and drums to create a positive and confident mood.</th>
+            <th id="multicond_audio_header_3">Bright and grooving, featuring vocal chops, synthesizers, bass, and beats that create a proud, soaring mood.</th>
+            <th id="multicond_audio_header_4">Soaring and hopeful, featuring atmospheric electric guitar, floating chops, bouncy choir and light synth drums that create a dreamy, inspirational mood. bpm 105</th>
+        </tr>
+
+        <tr>
+            <td> Source Audio </td>
+            <td>
+                <audio controls id="audio_1_GT">
+                    <source src="audio/multi_cond/gt_0.wav" type="audio/mpeg">
+                    Your browser does not support the audio element.
+                </audio>
+            </td>
+            <td>
+                <audio controls id="audio_2_GT">
+                    <source src="audio/multi_cond/gt_1.wav" type="audio/mpeg">
+                    Your browser does not support the audio element.
+                </audio>
+            </td>
+            <td>
+                <audio controls id="audio_3_GT">
+                    <source src="audio/multi_cond/gt_2.wav" type="audio/mpeg">
+                    Your browser does not support the audio element.
+                </audio>
+            </td>
+            <td>
+                <audio controls id="audio_3_GT">
+                    <source src="audio/multi_cond/gt_3.wav" type="audio/mpeg">
+                    Your browser does not support the audio element.
+                </audio>
+            </td>
+        </tr>
+
+        <tr>
+            <td> Chords + Drums </td>
+            <td>
+                <audio controls id="audio_1_chords_drums">
+                    <source src="audio/multi_cond/full_model_chords_drums_0_0.wav" type="audio/mpeg">
+                    Your browser does not support the audio element.
+                </audio>
+            </td>
+            <td>
+                <audio controls id="audio_2_chords_drums">
+                    <source src="audio/multi_cond/full_model_chords_drums_1_0.wav" type="audio/mpeg">
+                    Your browser does not support the audio element.
+                </audio>
+            </td>
+            <td>
+                <audio controls id="audio_3_chords_drums">
+                    <source src="audio/multi_cond/full_model_chords_drums_2_0.wav" type="audio/mpeg">
+                    Your browser does not support the audio element.
+                </audio>
+            </td>
+            <td>
+                <audio controls id="audio_3_chords_drums">
+                    <source src="audio/multi_cond/full_model_chords_drums_3_0.wav" type="audio/mpeg">
+                    Your browser does not support the audio element.
+                </audio>
+            </td>
+        </tr>
+        <tr>
+            <td> Chords + Melody </td>
+            <td>
+                <audio controls id="audio_1_chords_melody">
+                    <source src="audio/multi_cond/full_model_chords_melody_0_0.wav" type="audio/mpeg">
+                    Your browser does not support the audio element.
+                </audio>
+            </td>
+            <td>
+                <audio controls id="audio_2_chords_melody">
+                    <source src="audio/multi_cond/full_model_chords_melody_1_0.wav" type="audio/mpeg">
+                    Your browser does not support the audio element.
+                </audio>
+            </td>
+            <td>
+                <audio controls id="audio_3_chords_melody">
+                    <source src="audio/multi_cond/full_model_chords_melody_2_0.wav" type="audio/mpeg">
+                    Your browser does not support the audio element.
+                </audio>
+            </td>
+            <td>
+                <audio controls id="audio_4_chords_melody">
+                    <source src="audio/multi_cond/full_model_chords_melody_3_0.wav" type="audio/mpeg">
+                    Your browser does not support the audio element.
+                </audio>
+            </td>
+        </tr>
+
+        <tr>
+            <td> Drums + Melody </td>
+            <td>
+                <audio controls id="audio_1_melody_drums">
+                    <source src="audio/multi_cond/full_model_melody_drums_0_0.wav" type="audio/mpeg">
+                    Your browser does not support the audio element.
+                </audio>
+            </td>
+            <td>
+                <audio controls id="audio_2_melody_drums">
+                    <source src="audio/multi_cond/full_model_melody_drums_1_0.wav" type="audio/mpeg">
+                    Your browser does not support the audio element.
+                </audio>
+            </td>
+            <td>
+                <audio controls id="audio_3_melody_drums">
+                    <source src="audio/multi_cond/full_model_melody_drums_2_0.wav" type="audio/mpeg">
+                    Your browser does not support the audio element.
+                </audio>
+            </td>
+            <td>
+                <audio controls id="audio_4_melody_drums">
+                    <source src="audio/multi_cond/full_model_melody_drums_3_0.wav" type="audio/mpeg">
+                    Your browser does not support the audio element.
+                </audio>
+            </td>
+        </tr>
+
+        <tr>
+            <td> All Controls </td>
+            <td>
+                <audio controls id="audio_1_all">
+                    <source src="audio/multi_cond/full_model_all_0_0.wav" type="audio/mpeg">
+                    Your browser does not support the audio element.
+                </audio>
+            </td>
+            <td>
+                <audio controls id="audio_2_all">
+                    <source src="audio/multi_cond/full_model_all_1_0.wav" type="audio/mpeg">
+                    Your browser does not support the audio element.
+                </audio>
+            </td>
+            <td>
+                <audio controls id="audio_3_all">
+                    <source src="audio/multi_cond/full_model_all_2_0.wav" type="audio/mpeg">
+                    Your browser does not support the audio element.
+                </audio>
+            </td>
+            <td>
+                <audio controls id="audio_4_all">
+                    <source src="audio/multi_cond/full_model_all_3_0.wav" type="audio/mpeg">
+                    Your browser does not support the audio element.
+                </audio>
+            </td>
+        </tr>
+    </table>
+  </div>
+    
+</body>
+</html>
